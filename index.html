@@ -474,11 +474,7 @@
       <button class="nav-btn" onclick="showSection('payouts')">Payouts</button>
       <button class="nav-btn" id="admin-nav-btn" onclick="showSection('admin')" style="display:none">Admin</button>
       <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-        <div onclick="toggleDemo()" id="demo-toggle-btn" style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none" title="Toggle demo data">
-          <span id="demo-label" style="font-size:12px;font-weight:500;color:var(--text-3);transition:color .2s;white-space:nowrap">Demo</span>
-          <div id="demo-track" style="width:36px;height:20px;border-radius:10px;background:var(--border-hi);position:relative;transition:background .2s;flex-shrink:0">
-            <div id="demo-thumb" style="position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--text-3);transition:transform .2s,background .2s"></div>
-          </div>
+        </div>
         </div>
         <button id="admin-icon-btn" onclick="openAdminLogin()" title="Admin" style="background:none;border:none;cursor:pointer;color:var(--text-3);display:flex;align-items:center;gap:7px;padding:4px;transition:color .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-3)'">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="19.07" y1="4.93" x2="16.24" y2="7.76"/><line x1="7.76" y1="16.24" x2="4.93" y2="19.07"/></svg>
@@ -1067,21 +1063,27 @@ let lbSortAsc = false;         // false = descending
 // STORAGE
 // ══════════════════════════════════════════
 async function load(key){
-  // Try localStorage first (most persistent in browser), then Claude artifact storage
-  try{ const v=localStorage.getItem(key); if(v) return JSON.parse(v); }catch{}
+  // localStorage is the primary store on all real hosting (GitHub Pages, Netlify, etc.)
+  try{
+    const v = localStorage.getItem(key);
+    if(v !== null) return JSON.parse(v);
+  }catch(e){}
+  // Claude artifact storage fallback (only exists inside claude.ai)
   try{
     if(window.storage){
-      const r=await window.storage.get(key);
+      const r = await window.storage.get(key);
       if(r) return JSON.parse(r.value);
     }
-  }catch{}
+  }catch(e){}
   return null;
 }
-async function save(key,val){
-  // Save to localStorage (persistent across page reloads)
-  try{ localStorage.setItem(key,JSON.stringify(val)); }catch{}
-  // Also save to Claude artifact storage if available
-  try{ if(window.storage) await window.storage.set(key,JSON.stringify(val)); }catch{}
+
+async function save(key, val){
+  const str = JSON.stringify(val);
+  // Always save to localStorage first — works on all real browsers
+  try{ localStorage.setItem(key, str); }catch(e){ console.warn('localStorage save failed:', e); }
+  // Also try Claude artifact storage if available
+  try{ if(window.storage) await window.storage.set(key, str); }catch(e){}
 }
 
 // ══════════════════════════════════════════
@@ -1175,8 +1177,7 @@ function buildDemoData(){
 // ══════════════════════════════════════════
 // DEMO MODE
 // ══════════════════════════════════════════
-let demoMode = false;
-let REAL_EVENTS=[], REAL_PLAYERS=[], REAL_SPECIAL=[], REAL_PAYOUTS=null;
+const demoMode = false; // Demo mode removed
 
 function toggleDemo(){ demoMode = !demoMode; applyDemo(); }
 
@@ -1639,7 +1640,7 @@ function startInlineEdit(cell, evId, sessId, playerName, field, currentVal){
     const result=sess?.results.find(r=>r.player===playerName);
     if(result){
       result[field]=newVal;
-      if(!demoMode) await save('pk_ev3',EVENTS);
+      await save('pk_ev3',EVENTS);
       renderPublicEvents();
       toast(`${playerName} ${field} updated ✓`);
     }
@@ -1717,7 +1718,7 @@ async function saveEditSession(){
     if(vals.points!==undefined) r.points=vals.points;
   });
 
-  if(!demoMode) await save('pk_ev3',EVENTS);
+  await save('pk_ev3',EVENTS);
   closeModal('modal-edit-session');
   renderAdminEvents(); renderPublicEvents();
   if(document.getElementById('section-admin-event-detail').classList.contains('active')){
@@ -1732,19 +1733,18 @@ async function saveEditSession(){
 // INIT
 // ══════════════════════════════════════════
 async function init(){
+  // Verify localStorage is working
+  try{
+    localStorage.setItem('pk_test', '1');
+    const ok = localStorage.getItem('pk_test') === '1';
+    localStorage.removeItem('pk_test');
+    if(!ok) console.error('localStorage is not working — data will not persist!');
+    else console.log('localStorage OK ✓');
+  }catch(e){ console.error('localStorage unavailable:', e); }
+
   EVENTS  = (await load('pk_ev3'))||[];
   PLAYERS = (await load('pk_pl3'))||[];
-
-  // Purge stale seeded data — old demo/seed IDs or known seeded names
-  const staleIds = ['demo_ev_tue','demo_ev_fri','demo_ev_sat','demo_ev_wed','demo_ev_mon'];
-  const staleNames = ["Tuesday Night Game","Friday High Stakes","Weekend Tourney","Wednesday Dealer's Choice","Monday Rebuy Night"];
-  const hasStale = EVENTS.some(e=>staleIds.includes(e.id)||staleNames.includes(e.name));
-  if(hasStale){
-    EVENTS=[]; PLAYERS=[];
-    await save('pk_ev3',EVENTS);
-    await save('pk_pl3',PLAYERS);
-    try{ await window.storage.delete('pk_special'); }catch(e){}
-  }
+  console.log(`Loaded ${EVENTS.length} events, ${PLAYERS.length} players from storage`);
 
   await loadPayouts();
   await loadSpecialEvents();
@@ -1985,7 +1985,7 @@ async function submitAddEvent(){
   const lateReg=document.getElementById('ae-late-reg').value;
   if(!name||!loc){toast('Enter name and location');return;}
   EVENTS.push({id:uid(),name,location:loc,day,time,buyin,earlyReg,reg,lateReg,sessions:[]});
-  if(!demoMode) await save('pk_ev3',EVENTS);
+  await save('pk_ev3',EVENTS);
   closeModal('modal-add-event');
   document.getElementById('ae-name').value='';
   document.getElementById('ae-loc').value='';
@@ -2075,10 +2075,10 @@ async function saveScores(){
       r.player = exists.name;
     }
   }
-  if(newCount>0 && !demoMode) await save('pk_pl3',PLAYERS);
+  if(newCount>0) await save('pk_pl3',PLAYERS);
 
   ev.sessions.push({id:uid(),date,results:parsedCSV});
-  if(!demoMode) await save('pk_ev3',EVENTS);
+  await save('pk_ev3',EVENTS);
   const wasAdminDetail=document.getElementById('section-admin-event-detail').classList.contains('active');
   const savedEvId=uploadingEventId;
   closeModal('modal-add-scores');
@@ -2235,7 +2235,7 @@ function confirmDeleteSession(evId,sessId){
 }
 async function deleteEvent(evId){
   EVENTS=EVENTS.filter(e=>e.id!==evId);
-  if(!demoMode) await save('pk_ev3',EVENTS);
+  await save('pk_ev3',EVENTS);
   closeModal('modal-confirm');
   renderAdminEvents(); renderPublicEvents(); populateLeaderboardFilter();
   toast('Event deleted');
@@ -2244,7 +2244,7 @@ async function deleteEvent(evId){
 async function deleteSession(evId,sessId){
   const ev=EVENTS.find(e=>e.id===evId);
   if(ev) ev.sessions=ev.sessions.filter(s=>s.id!==sessId);
-  if(!demoMode) await save('pk_ev3',EVENTS);
+  await save('pk_ev3',EVENTS);
   closeModal('modal-confirm');
   renderAdminEvents(); renderPublicEvents();
   toast('Session deleted');
@@ -2261,14 +2261,14 @@ async function addPlayer(){
   if(!name) return;
   if(PLAYERS.find(p=>p.name.toLowerCase()===name.toLowerCase())){toast('Already exists');return;}
   PLAYERS.push({id:uid(),name});
-  if(!demoMode) await save('pk_pl3',PLAYERS);
+  await save('pk_pl3',PLAYERS);
   document.getElementById('new-player-name').value='';
   renderRoster(); renderPlayersGrid();
   toast(name+' added ✓');
 }
 async function removePlayer(id){
   PLAYERS=PLAYERS.filter(p=>p.id!==id);
-  if(!demoMode) await save('pk_pl3',PLAYERS);
+  await save('pk_pl3',PLAYERS);
   renderRoster(); renderPlayersGrid();
 }
 function renderRoster(){
@@ -2316,7 +2316,7 @@ async function bulkDeletePlayers(){
   if(!ids.length) return;
   if(!confirm(`Remove ${ids.length} player${ids.length!==1?'s':''}?`)) return;
   PLAYERS=PLAYERS.filter(p=>!ids.includes(p.id));
-  if(!demoMode) await save('pk_pl3',PLAYERS);
+  await save('pk_pl3',PLAYERS);
   renderRoster(); renderPlayersGrid();
   toast(`${ids.length} player${ids.length!==1?'s':''} removed`);
 }
@@ -2340,7 +2340,7 @@ function importSVGPlayers(e){
         PLAYERS.push({id:uid(),name}); added++;
       }
     }
-    if(!demoMode) await save('pk_pl3',PLAYERS);
+    await save('pk_pl3',PLAYERS);
     renderRoster(); renderPlayersGrid();
     document.getElementById('svg-import-input').value='';
     toast(`${added} player${added!==1?'s':''} imported from SVG ✓`);
@@ -2930,7 +2930,7 @@ function liveSubmit(){
   const sessId = uid();
   const sess = {id:sessId, date:liveSession.date, results};
   ev.sessions.push(sess);
-  if(!demoMode) save('pk_ev3', EVENTS);
+  save('pk_ev3', EVENTS);
   // Auto-create new players
   let newCount=0;
   results.forEach(r=>{
@@ -2938,7 +2938,7 @@ function liveSubmit(){
       PLAYERS.push({id:uid(),name:r.player,avatar:null});newCount++;
     }
   });
-  if(newCount && !demoMode) save('pk_pl3',PLAYERS);
+  if(newCount) save('pk_pl3',PLAYERS);
   liveSession = null;
   hideLiveBanner();
   fbSaveLive(null);
@@ -3574,7 +3574,7 @@ async function saveSpecialEvent(){
   };
   if(editingSpecialId){ const idx=SPECIAL_EVENTS.findIndex(e=>e.id===editingSpecialId); if(idx!==-1) SPECIAL_EVENTS[idx]=ev; }
   else { SPECIAL_EVENTS.push(ev); }
-  if(!demoMode) await save('pk_special',SPECIAL_EVENTS);
+  await save('pk_special',SPECIAL_EVENTS);
   closeModal('modal-special-event');
   resetSpecialForm();
   renderSpecialEventsPublic();
@@ -3585,7 +3585,7 @@ async function saveSpecialEvent(){
 async function deleteSpecialEvent(id){
   SPECIAL_EVENTS=SPECIAL_EVENTS.filter(e=>e.id!==id);
   activeSpecialIdx=0;
-  if(!demoMode) await save('pk_special',SPECIAL_EVENTS);
+  await save('pk_special',SPECIAL_EVENTS);
   renderSpecialEventsPublic();
   renderSpecialEventsAdmin();
   toast('Special event deleted');
