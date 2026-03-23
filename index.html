@@ -1062,28 +1062,70 @@ let lbSortAsc = false;         // false = descending
 // ══════════════════════════════════════════
 // STORAGE
 // ══════════════════════════════════════════
-async function load(key){
-  // localStorage is the primary store on all real hosting (GitHub Pages, Netlify, etc.)
+// ══════════════════════════════════════════
+// SUPABASE CONFIG — Fill these in!
+// 1. Go to supabase.com → New project
+// 2. Settings → API → copy Project URL and anon public key
+// 3. SQL Editor → run:
+//    create table poker_data (
+//      key text primary key,
+//      value jsonb,
+//      updated_at timestamptz default now()
+//    );
+//    alter table poker_data enable row level security;
+//    create policy "Public read" on poker_data for select using (true);
+//    create policy "Public write" on poker_data for all using (true);
+// ══════════════════════════════════════════
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';       // e.g. https://abcxyz.supabase.co
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';  // long string starting with eyJ...
+
+const SB_CONFIGURED = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+
+async function sbFetch(method, key, val){
+  if(!SB_CONFIGURED) return null;
   try{
-    const v = localStorage.getItem(key);
-    if(v !== null) return JSON.parse(v);
-  }catch(e){}
-  // Claude artifact storage fallback (only exists inside claude.ai)
-  try{
-    if(window.storage){
-      const r = await window.storage.get(key);
-      if(r) return JSON.parse(r.value);
+    const url = SUPABASE_URL + '/rest/v1/poker_data';
+    const headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=minimal'
+    };
+    if(method === 'GET'){
+      const res = await fetch(url + '?key=eq.' + encodeURIComponent(key) + '&select=value', {headers});
+      if(!res.ok){ console.warn('Supabase GET error:', res.status, await res.text()); return null; }
+      const rows = await res.json();
+      return rows.length ? rows[0].value : null;
+    } else {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({key, value: val, updated_at: new Date().toISOString()})
+      });
+      if(!res.ok) console.warn('Supabase POST error:', res.status, await res.text());
     }
-  }catch(e){}
+  }catch(e){ console.warn('Supabase error:', e.message); return null; }
+}
+
+async function load(key){
+  // Try Supabase first (shared across all devices)
+  if(SB_CONFIGURED){
+    const val = await sbFetch('GET', key);
+    if(val !== null){
+      try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+      return val;
+    }
+  }
+  // Fall back to localStorage (works offline / before Supabase configured)
+  try{ const v = localStorage.getItem(key); if(v !== null) return JSON.parse(v); }catch(e){}
   return null;
 }
 
 async function save(key, val){
-  const str = JSON.stringify(val);
-  // Always save to localStorage first — works on all real browsers
-  try{ localStorage.setItem(key, str); }catch(e){ console.warn('localStorage save failed:', e); }
-  // Also try Claude artifact storage if available
-  try{ if(window.storage) await window.storage.set(key, str); }catch(e){}
+  // Save to localStorage immediately (instant, works offline)
+  try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  // Save to Supabase (syncs across all devices)
+  if(SB_CONFIGURED) await sbFetch('POST', key, val);
 }
 
 // ══════════════════════════════════════════
@@ -1733,18 +1775,13 @@ async function saveEditSession(){
 // INIT
 // ══════════════════════════════════════════
 async function init(){
-  // Verify localStorage is working
-  try{
-    localStorage.setItem('pk_test', '1');
-    const ok = localStorage.getItem('pk_test') === '1';
-    localStorage.removeItem('pk_test');
-    if(!ok) console.error('localStorage is not working — data will not persist!');
-    else console.log('localStorage OK ✓');
-  }catch(e){ console.error('localStorage unavailable:', e); }
+  // Storage status
+  if(SB_CONFIGURED) console.log('Supabase configured ✓ — data syncs across all devices');
+  else console.warn('⚠️ Supabase not configured — data only saves to this browser. See SUPABASE_URL in the code.');
 
   EVENTS  = (await load('pk_ev3'))||[];
   PLAYERS = (await load('pk_pl3'))||[];
-  console.log(`Loaded ${EVENTS.length} events, ${PLAYERS.length} players from storage`);
+  console.log(`Loaded ${EVENTS.length} events, ${PLAYERS.length} players`);
 
   await loadPayouts();
   await loadSpecialEvents();
