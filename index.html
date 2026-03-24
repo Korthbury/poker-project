@@ -6,9 +6,6 @@
 <title>Poker League</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
-<!-- Firebase Realtime Database SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
   :root {
     --bg:       #0B0F0E;
@@ -431,28 +428,6 @@
   .cp-hex-row { display: flex; gap: 8px; align-items: center; }
   .cp-preview { width: 32px; height: 32px; border-radius: var(--r-sm); border: 1px solid var(--border-hi); flex-shrink: 0; }
 
-  /* Overflow menu */
-  .overflow-btn { width:32px;height:32px;background:transparent;border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text-3);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s;flex-shrink:0 }
-  .overflow-btn:hover { border-color:var(--border-hi);color:var(--text) }
-  .overflow-menu { position:fixed;z-index:8000;background:var(--elevated);border:1px solid var(--border-hi);border-radius:var(--r-sm);box-shadow:0 4px 20px rgba(0,0,0,.5);min-width:140px;overflow:hidden }
-  .overflow-item { display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;background:none;border:none;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:background .1s }
-  .overflow-item:hover { background:var(--surface) }
-  .overflow-item.danger { color:var(--red) }
-  .overflow-item.danger:hover { background:var(--red-bg) }
-
-  @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.85)} }
-  .live-badge { display:inline-flex;align-items:center;gap:5px;background:rgba(229,72,77,.15);border:1px solid rgba(229,72,77,.3);color:#E5484D;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.5px }
-  .live-badge .pulse { width:7px;height:7px;background:#E5484D;border-radius:50%;animation:livePulse 1.2s ease-in-out infinite;flex-shrink:0 }
-  .live-row { display:flex;align-items:center;border-bottom:1px solid var(--border);transition:background .15s }
-  .live-row:hover { background:rgba(255,255,255,.02) }
-  .live-rank-input { width:36px;height:36px;background:var(--elevated);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;text-align:center;outline:none;transition:border-color .15s }
-  .live-rank-input:focus { border-color:var(--gold) }
-  .live-name-input { width:100%;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;font-weight:500;outline:none;transition:border-color .15s;padding:2px 0 }
-  .live-name-input:focus { border-bottom-color:var(--gold) }
-  .live-ko-btn { background:var(--red);border:1px solid var(--red);color:#fff;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;padding:5px 10px;border-radius:var(--r-sm);cursor:pointer;transition:all .15s;white-space:nowrap }
-  .live-ko-btn:hover { opacity:.85 }
-  .live-ko-btn.restore { background:transparent;border:1px solid var(--border);color:var(--text-3) }
-  .live-ko-btn.restore:hover { border-color:var(--gold);color:var(--gold) }
 </style>
 </head>
 <body>
@@ -474,7 +449,11 @@
       <button class="nav-btn" onclick="showSection('payouts')">Payouts</button>
       <button class="nav-btn" id="admin-nav-btn" onclick="showSection('admin')" style="display:none">Admin</button>
       <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-        </div>
+        <div onclick="toggleDemo()" id="demo-toggle-btn" style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none" title="Toggle demo data">
+          <span id="demo-label" style="font-size:12px;font-weight:500;color:var(--text-3);transition:color .2s;white-space:nowrap">Demo</span>
+          <div id="demo-track" style="width:36px;height:20px;border-radius:10px;background:var(--border-hi);position:relative;transition:background .2s;flex-shrink:0">
+            <div id="demo-thumb" style="position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--text-3);transition:transform .2s,background .2s"></div>
+          </div>
         </div>
         <button id="admin-icon-btn" onclick="openAdminLogin()" title="Admin" style="background:none;border:none;cursor:pointer;color:var(--text-3);display:flex;align-items:center;gap:7px;padding:4px;transition:color .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-3)'">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="19.07" y1="4.93" x2="16.24" y2="7.76"/><line x1="7.76" y1="16.24" x2="4.93" y2="19.07"/></svg>
@@ -539,11 +518,6 @@
     <!-- SESSION DETAIL -->
     <div id="section-session-detail" class="section">
       <div id="session-detail-content"></div>
-    </div>
-
-    <!-- LIVE SESSION -->
-    <div id="section-live-session" class="section">
-      <div id="live-session-content"></div>
     </div>
 
     <!-- PLAYERS / LEADERBOARD -->
@@ -643,29 +617,6 @@
     </div>
 
   </main>
-
-<!-- LIVE BANNER -->
-<div id="live-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--surface);border-top:1px solid var(--border-hi);padding:10px 24px;align-items:center;gap:12px;box-shadow:0 -4px 24px rgba(0,0,0,.4)">
-  <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-    <span id="live-banner-badge" style="display:inline-flex;align-items:center;gap:5px;background:rgba(229,72,77,.15);border:1px solid rgba(229,72,77,.3);color:#E5484D;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.5px;flex-shrink:0">
-      <span style="width:7px;height:7px;background:#E5484D;border-radius:50%;animation:livePulse 1.2s ease-in-out infinite"></span>
-      LIVE
-    </span>
-    <span id="live-banner-name" style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
-  </div>
-  <!-- Admin view: share prompt + copy link -->
-  <div id="live-banner-admin" style="display:none;align-items:center;gap:10px;flex-shrink:0">
-    <span style="font-size:12px;color:var(--text-3)">Share with everyone so they can view live</span>
-    <button onclick="liveCopyLink()" class="btn-secondary" style="display:flex;align-items:center;gap:6px;padding:7px 14px;font-size:12px;flex-shrink:0">
-      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      Copy Link
-    </button>
-  </div>
-  <!-- Public view: follow button -->
-  <div id="live-banner-public" style="display:none;flex-shrink:0">
-    <button onclick="followLiveSession()" class="btn-gold" style="padding:7px 16px;font-size:12px">Follow →</button>
-  </div>
-</div>
 </div>
 
 <!-- DEMO BANNER -->
@@ -943,89 +894,6 @@
 
 <script>
 // ══════════════════════════════════════════
-// FIREBASE CONFIG — Fill this in!
-// 1. Go to console.firebase.google.com
-// 2. Create a project → Add web app
-// 3. Copy your config object values below
-// 4. In Firebase console: Build → Realtime Database → Create database → Start in test mode
-// ══════════════════════════════════════════
-const FIREBASE_CONFIG = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  databaseURL:       "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId:         "YOUR_PROJECT",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
-};
-
-// ══════════════════════════════════════════
-// FIREBASE LAYER
-// Wraps Firebase Realtime Database with
-// localStorage fallback if not configured
-// ══════════════════════════════════════════
-let fbDb = null;
-let fbLiveListener = null;
-const FB_CONFIGURED = FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY';
-
-function fbInit(){
-  if(!FB_CONFIGURED) return;
-  try{
-    if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-    fbDb = firebase.database();
-    console.log('Firebase connected ✓');
-  } catch(e){
-    console.warn('Firebase init failed, using localStorage fallback:', e.message);
-    fbDb = null;
-  }
-}
-
-async function fbSaveLive(data){
-  // Save live session to Firebase (real-time sync) + localStorage (fallback)
-  try{ localStorage.setItem('pk_live', JSON.stringify(data)); }catch{}
-  if(!fbDb) return;
-  try{
-    await fbDb.ref('live_session').set(data ? {...data, _ts: Date.now()} : null);
-  } catch(e){ console.warn('Firebase write failed:', e.message); }
-}
-
-async function fbLoadLive(){
-  // Try Firebase first, fall back to localStorage
-  if(fbDb){
-    try{
-      const snap = await fbDb.ref('live_session').get();
-      if(snap.exists()) return snap.val();
-    } catch(e){ console.warn('Firebase read failed, using localStorage:', e.message); }
-  }
-  try{ const v = localStorage.getItem('pk_live'); return v ? JSON.parse(v) : null; }catch{}
-  return null;
-}
-
-function fbSubscribeLive(callback){
-  // Unsubscribe any existing listener
-  fbUnsubscribeLive();
-  if(fbDb){
-    try{
-      fbLiveListener = fbDb.ref('live_session').on('value', snap=>{
-        callback(snap.exists() ? snap.val() : null);
-      }, err=>{
-        console.warn('Firebase listener error:', err.message);
-        callback(null);
-      });
-      return true; // real-time active
-    } catch(e){ console.warn('Firebase subscribe failed:', e.message); }
-  }
-  return false; // no real-time, use polling/manual
-}
-
-function fbUnsubscribeLive(){
-  if(fbDb && fbLiveListener){
-    try{ fbDb.ref('live_session').off('value', fbLiveListener); }catch{}
-    fbLiveListener = null;
-  }
-}
-
-// ══════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════
 const ADMIN_USER = 'Korth';
@@ -1062,77 +930,22 @@ let lbSortAsc = false;         // false = descending
 // ══════════════════════════════════════════
 // STORAGE
 // ══════════════════════════════════════════
-// ══════════════════════════════════════════
-// SUPABASE CONFIG — Fill these in!
-// 1. Go to supabase.com → New project
-// 2. Settings → API → copy Project URL and anon public key
-// 3. SQL Editor → run:
-//    create table poker_data (
-//      key text primary key,
-//      value jsonb,
-//      updated_at timestamptz default now()
-//    );
-//    alter table poker_data enable row level security;
-//    create policy "Public read" on poker_data for select using (true);
-//    create policy "Public write" on poker_data for all using (true);
-// ══════════════════════════════════════════
-const SUPABASE_URL = 'https://nkxfayucjvwqvxmjhhjq.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_3pBEjAJHrr10Kzjd86ksvQ_NAZjufpo';
-
-const SB_CONFIGURED = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
-
-async function sbFetch(method, key, val){
-  if(!SB_CONFIGURED) return null;
-  try{
-    const url = SUPABASE_URL + '/rest/v1/poker_data';
-    const headers = {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Prefer': method === 'GET' ? '' : 'resolution=merge-duplicates,return=minimal'
-    };
-    if(method === 'GET'){
-      const res = await fetch(url + '?key=eq.' + encodeURIComponent(key) + '&select=value', {headers});
-      const text = await res.text();
-      console.log('Supabase GET', key, '→ status:', res.status, 'body:', text.slice(0,200));
-      if(!res.ok){ console.warn('Supabase GET error:', res.status, text); return null; }
-      const rows = JSON.parse(text);
-      if(!rows.length){ console.log('Supabase: no rows found for', key); return null; }
-      console.log('Supabase: found row for', key, '→ value type:', typeof rows[0].value);
-      return rows[0].value;
-    } else {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({key, value: val, updated_at: new Date().toISOString()})
-      });
-      const text = await res.text();
-      console.log('Supabase POST', key, '→ status:', res.status, text.slice(0,100));
-      if(!res.ok) console.warn('Supabase POST error:', res.status, text);
-    }
-  }catch(e){ console.warn('Supabase error:', e.message); return null; }
-}
-
 async function load(key){
-  // Try Supabase first (shared across all devices)
-  if(SB_CONFIGURED){
-    const val = await sbFetch('GET', key);
-    if(val !== null){
-      try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
-      return val;
+  // Try localStorage first (most persistent in browser), then Claude artifact storage
+  try{ const v=localStorage.getItem(key); if(v) return JSON.parse(v); }catch{}
+  try{
+    if(window.storage){
+      const r=await window.storage.get(key);
+      if(r) return JSON.parse(r.value);
     }
-  }
-  // Fall back to localStorage (works offline / before Supabase configured)
-  try{ const v = localStorage.getItem(key); if(v !== null) return JSON.parse(v); }catch(e){}
+  }catch{}
   return null;
 }
-
-async function save(key, val){
-  // Save to localStorage immediately (instant, works offline)
-  try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
-  // Save to Supabase (syncs across all devices)
-  if(SB_CONFIGURED) await sbFetch('POST', key, val);
+async function save(key,val){
+  // Save to localStorage (persistent across page reloads)
+  try{ localStorage.setItem(key,JSON.stringify(val)); }catch{}
+  // Also save to Claude artifact storage if available
+  try{ if(window.storage) await window.storage.set(key,JSON.stringify(val)); }catch{}
 }
 
 // ══════════════════════════════════════════
@@ -1226,7 +1039,8 @@ function buildDemoData(){
 // ══════════════════════════════════════════
 // DEMO MODE
 // ══════════════════════════════════════════
-const demoMode = false; // Demo mode removed
+let demoMode = false;
+let REAL_EVENTS=[], REAL_PLAYERS=[], REAL_SPECIAL=[], REAL_PAYOUTS=null;
 
 function toggleDemo(){ demoMode = !demoMode; applyDemo(); }
 
@@ -1301,8 +1115,6 @@ function clearBreadcrumb(){
 // ══════════════════════════════════════════
 function showSection(id){
   window.scrollTo(0,0);
-  // Unsubscribe live listener if leaving live view
-  if(id !== 'live-session') fbUnsubscribeLive();
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const sec = document.getElementById('section-'+id);
@@ -1335,10 +1147,7 @@ function renderPublicEvents(){
     return `<tr style="cursor:pointer" onclick="showEventDetail('${ev.id}')">
       <td>
         <div class="ev-display-name" style="font-size:16px;color:var(--text);line-height:1.2">${ev.name}</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
-          ${liveSession&&liveSession.evId===ev.id ? `<span class="live-badge" style="font-size:10px;padding:2px 7px"><span class="pulse"></span>LIVE</span>` : ''}
-          <span style="font-size:11px;color:var(--green)">${ev.location}</span>
-        </div>
+        <div style="font-size:11px;color:var(--green);margin-top:3px">${ev.location}</div>
       </td>
       <td style="color:var(--text-3);font-size:13px">${ev.day}s</td>
       <td style="font-size:13px;color:var(--text)">$${ev.buyin}</td>
@@ -1368,7 +1177,10 @@ function showEventDetail(evId){
 
   const rows=sorted.length?sorted.map(s=>{
     const w=s.results.find(r=>r.position===1);
-    const adminBtns = loggedIn ? overflowBtn(`openOverflow(this,[{label:'Edit',icon:OV_EDIT,fn:()=>openEditSessionModal('${ev.id}','${s.id}')},{label:'Delete',icon:OV_DELETE,danger:true,fn:()=>confirmDeleteSession('${ev.id}','${s.id}')}])`) : '';
+    const adminBtns = loggedIn ? `
+      <button class="btn-sm" onclick="event.stopPropagation();openEditSessionModal('${ev.id}','${s.id}')">Edit</button>
+      <button class="btn-red" onclick="event.stopPropagation();confirmDeleteSession('${ev.id}','${s.id}')">Delete</button>
+    ` : '';
     return `<tr style="cursor:pointer" onclick="showSessionDetail('${ev.id}','${s.id}','event-detail')">
       <td style="font-size:14px;font-weight:500;color:var(--text)">${formatDate(s.date)}</td>
       <td style="font-size:14px;color:var(--text-2);padding-left:16px">${s.results.length}</td>
@@ -1385,19 +1197,6 @@ function showEventDetail(evId){
   document.getElementById('event-detail-content').innerHTML=`
     <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px">${ev.location}</div>
     <div class="page-title" style="margin-bottom:20px">${ev.name}</div>
-    ${liveSession&&liveSession.evId===ev.id ? `
-    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(229,72,77,.08);border:1px solid rgba(229,72,77,.25);border-radius:var(--r-sm);padding:14px 18px;margin-bottom:20px;gap:12px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span class="live-badge"><span class="pulse"></span>LIVE</span>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:var(--text)">${formatDate(liveSession.date)}</div>
-          <div style="font-size:12px;color:var(--text-3)">${liveSession.rows.filter(r=>!r.knocked&&r.name.trim()).length} players remain</div>
-        </div>
-      </div>
-      <button ${loggedIn ? `class="btn-secondary" onclick="liveCopyLink()" style="font-size:12px;padding:7px 16px;display:flex;align-items:center;gap:6px"` : `class="btn-gold" onclick="followLiveSession()" style="font-size:12px;padding:7px 16px"`}>
-        ${loggedIn ? `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link` : 'Follow Live →'}
-      </button>
-    </div>` : ''}
     <table class="leaderboard">
       <thead><tr>
         <th>Date</th><th style="padding-left:16px">Players</th><th>Winner</th><th></th>
@@ -1423,15 +1222,9 @@ function showSessionDetail(evId, sessId, backTo){
   if(!ev||!sess) return;
   const sorted=[...sess.results].sort((a,b)=>a.position-b.position);
 
-  const isLive = liveSession && liveSession.evId === evId && liveSession.date === sess.date;
-  const remain = isLive ? liveSession.rows.filter(r=>!r.knocked && r.name.trim()).length : null;
-
   document.getElementById('session-detail-content').innerHTML=`
     <div class="page-title" style="margin-bottom:4px">${formatDate(sess.date)}</div>
-    <div style="font-size:13px;color:var(--text-3);margin-bottom:24px;display:flex;align-items:center;gap:10px">
-      ${isLive ? `<span class="live-badge"><span class="pulse"></span>LIVE</span>` : ''}
-      <span>${sess.results.length} players${isLive && remain!==null ? ` <span style="color:var(--text-2)">(${remain} remain)</span>` : ''}</span>
-    </div>
+    <div style="font-size:13px;color:var(--text-3);margin-bottom:24px">${sess.results.length} players</div>
     <table class="leaderboard">
       <thead><tr><th>Rank</th><th>Player</th><th>Points</th></tr></thead>
       <tbody>${sorted.map(r=>`<tr>
@@ -1689,7 +1482,7 @@ function startInlineEdit(cell, evId, sessId, playerName, field, currentVal){
     const result=sess?.results.find(r=>r.player===playerName);
     if(result){
       result[field]=newVal;
-      await save('pk_ev3',EVENTS);
+      if(!demoMode) await save('pk_ev3',EVENTS);
       renderPublicEvents();
       toast(`${playerName} ${field} updated ✓`);
     }
@@ -1767,7 +1560,7 @@ async function saveEditSession(){
     if(vals.points!==undefined) r.points=vals.points;
   });
 
-  await save('pk_ev3',EVENTS);
+  if(!demoMode) await save('pk_ev3',EVENTS);
   closeModal('modal-edit-session');
   renderAdminEvents(); renderPublicEvents();
   if(document.getElementById('section-admin-event-detail').classList.contains('active')){
@@ -1782,24 +1575,23 @@ async function saveEditSession(){
 // INIT
 // ══════════════════════════════════════════
 async function init(){
-  // Storage status
-  if(SB_CONFIGURED) console.log('Supabase configured ✓ — data syncs across all devices');
-  else console.warn('⚠️ Supabase not configured — data only saves to this browser. See SUPABASE_URL in the code.');
-
   EVENTS  = (await load('pk_ev3'))||[];
   PLAYERS = (await load('pk_pl3'))||[];
-  console.log(`Loaded ${EVENTS.length} events, ${PLAYERS.length} players`);
+
+  // Purge stale seeded data — old demo/seed IDs or known seeded names
+  const staleIds = ['demo_ev_tue','demo_ev_fri','demo_ev_sat','demo_ev_wed','demo_ev_mon'];
+  const staleNames = ["Tuesday Night Game","Friday High Stakes","Weekend Tourney","Wednesday Dealer's Choice","Monday Rebuy Night"];
+  const hasStale = EVENTS.some(e=>staleIds.includes(e.id)||staleNames.includes(e.name));
+  if(hasStale){
+    EVENTS=[]; PLAYERS=[];
+    await save('pk_ev3',EVENTS);
+    await save('pk_pl3',PLAYERS);
+    try{ await window.storage.delete('pk_special'); }catch(e){}
+  }
 
   await loadPayouts();
   await loadSpecialEvents();
   await loadStyles();
-
-  // Init Firebase
-  fbInit();
-
-  // Restore any in-progress live session
-  const savedLive = await fbLoadLive();
-  if(savedLive && savedLive.evId) { liveSession = savedLive; updateLiveBanner(); }
 
   renderPublicEvents();
   renderSpecialEventsPublic();
@@ -1841,7 +1633,6 @@ function doLogin(){
     // Navigate to admin
     renderAdminEvents(); renderRoster();
     showSection('admin');
-    if(liveSession) updateLiveBanner();
   } else {
     document.getElementById('login-err').textContent='Invalid credentials.';
   }
@@ -1860,7 +1651,6 @@ function doLogout(){
   if(banner){ banner.style.display='none'; document.body.style.paddingTop=''; }
   // Hide styles save bar
   showSection('events');
-  if(liveSession) updateLiveBanner();
 }
 
 // ══════════════════════════════════════════
@@ -1901,20 +1691,10 @@ function renderAdminEvents(){
   const el=document.getElementById('admin-events-list');
   if(!el) return;
   if(!EVENTS.length){el.innerHTML=emptyHtml('No events yet');return;}
-  // Sort: live event first, then rest
-  const sortedEvents = [...EVENTS].sort((a,b)=>{
-    const aLive = liveSession && liveSession.evId === a.id ? -1 : 0;
-    const bLive = liveSession && liveSession.evId === b.id ? -1 : 0;
-    return aLive - bLive;
-  });
-  const rows=sortedEvents.map(ev=>{
-    const isLive = liveSession && liveSession.evId === ev.id;
-    return `<tr style="${isLive?'background:rgba(229,72,77,.04)':''}">
+  const rows=EVENTS.map(ev=>`
+    <tr>
       <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${isLive ? `<span class="live-badge" style="font-size:10px;padding:2px 7px"><span class="pulse"></span>LIVE</span>` : ''}
-          <div style="font-size:14px;font-weight:600;color:var(--text)">${ev.name}</div>
-        </div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${ev.name}</div>
         <div style="font-size:11px;color:var(--text-3);margin-top:2px">${ev.location}</div>
       </td>
       <td style="font-size:13px;color:var(--text-2)">${ev.day}s</td>
@@ -1924,11 +1704,10 @@ function renderAdminEvents(){
       <td style="text-align:right">
         <div style="display:flex;gap:8px;justify-content:flex-end">
           <button class="btn-sm" onclick="showAdminEventDetail('${ev.id}')">View</button>
-          ${overflowBtn(`openOverflow(this,[{label:'Delete',icon:OV_DELETE,danger:true,fn:()=>confirmDeleteEvent('${ev.id}')}])`)}
+          <button class="btn-red" onclick="confirmDeleteEvent('${ev.id}')">Delete</button>
         </div>
       </td>
-    </tr>`;
-  }).join('');
+    </tr>`).join('');
   el.innerHTML=`
     <table class="leaderboard">
       <thead><tr>
@@ -1959,27 +1738,12 @@ function showAdminEventDetail(evId){
         <td style="text-align:right">
           <div style="display:flex;gap:8px;justify-content:flex-end">
             <button class="btn-sm" onclick="showSessionDetail('${ev.id}','${s.id}','admin-event-detail')">View</button>
-            ${overflowBtn(`openOverflow(this,[{label:'Edit',icon:OV_EDIT,fn:()=>openEditSessionModal('${ev.id}','${s.id}')},{label:'Delete',icon:OV_DELETE,danger:true,fn:()=>confirmDeleteSession('${ev.id}','${s.id}')}])`)}
+            <button class="btn-sm" onclick="openEditSessionModal('${ev.id}','${s.id}')">Edit</button>
+            <button class="btn-red" onclick="confirmDeleteSession('${ev.id}','${s.id}')">Delete</button>
           </div>
         </td>
       </tr>`;
     }).join('') : `<tr><td colspan="4"><div class="empty"><div class="empty-icon">♦</div><p>No sessions yet</p></div></td></tr>`;
-
-    const hasLive = liveSession && liveSession.evId === ev.id;
-    const liveRow = hasLive ? `
-      <tr style="background:rgba(229,72,77,.06)">
-        <td>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="live-badge"><span class="pulse"></span>LIVE</span>
-            <span style="font-size:14px;font-weight:500;color:var(--text)">${formatDate(liveSession.date)}</span>
-          </div>
-        </td>
-        <td style="font-size:13px;color:var(--text-2)">${liveSession.rows.filter(r=>r.name.trim()).length} players</td>
-        <td style="font-size:13px;color:var(--text-3)">${liveSession.rows.filter(r=>!r.knocked&&r.name.trim()).length} remain</td>
-        <td style="text-align:right">
-          <button class="btn-gold" style="font-size:12px;padding:6px 14px" onclick="resumeLiveSession('${ev.id}')">▶ Resume Live</button>
-        </td>
-      </tr>` : '';
 
     document.getElementById('admin-event-detail-content').innerHTML=`
       <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
@@ -1989,21 +1753,15 @@ function showAdminEventDetail(evId){
           <div style="font-size:13px;color:var(--text-3)">${ev.day}s · ${fmt12(ev.time)} · $${ev.buyin} buy-in</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          ${hasLive ? '' : `<button class="btn-sm" onclick="openLiveSession('${ev.id}')" style="position:relative"
-            onmouseenter="document.getElementById('live-tip-${ev.id}').style.display='block'"
-            onmouseleave="document.getElementById('live-tip-${ev.id}').style.display='none'">
-            + Add Live Scores
-            <div id="live-tip-${ev.id}" style="display:none;position:absolute;bottom:calc(100% + 8px);left:0;max-width:260px;background:var(--elevated);border:1px solid var(--border-hi);border-radius:var(--r-sm);padding:8px 12px;font-size:11px;color:var(--text-3);line-height:1.5;z-index:100;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.4);white-space:normal">Add your players live as they arrive — and update them as they get knocked out. Users on your site can follow your poker action in real time.<div style="position:absolute;bottom:-5px;left:16px;width:8px;height:8px;background:var(--elevated);border-right:1px solid var(--border-hi);border-bottom:1px solid var(--border-hi);transform:rotate(45deg)"></div></div>
-          </button>`}
-          <button class="btn-gold" onclick="openAddScores('${ev.id}')">+ Add Final Scores</button>
-          ${overflowBtn(`openOverflow(this,[{label:'Delete Event',icon:OV_DELETE,danger:true,fn:()=>confirmDeleteEvent('${ev.id}')}])`)}
+          <button class="btn-gold" onclick="openAddScores('${ev.id}')">+ Add Scores</button>
+          <button class="btn-red" onclick="confirmDeleteEvent('${ev.id}')">Delete Event</button>
         </div>
       </div>
       <table class="leaderboard">
         <thead><tr>
           <th>Date</th><th>Players</th><th>Winner</th><th></th>
         </tr></thead>
-        <tbody>${liveRow}${rows}</tbody>
+        <tbody>${rows}</tbody>
       </table>`;
   }
 
@@ -2029,7 +1787,7 @@ async function submitAddEvent(){
   const lateReg=document.getElementById('ae-late-reg').value;
   if(!name||!loc){toast('Enter name and location');return;}
   EVENTS.push({id:uid(),name,location:loc,day,time,buyin,earlyReg,reg,lateReg,sessions:[]});
-  await save('pk_ev3',EVENTS);
+  if(!demoMode) await save('pk_ev3',EVENTS);
   closeModal('modal-add-event');
   document.getElementById('ae-name').value='';
   document.getElementById('ae-loc').value='';
@@ -2119,10 +1877,10 @@ async function saveScores(){
       r.player = exists.name;
     }
   }
-  if(newCount>0) await save('pk_pl3',PLAYERS);
+  if(newCount>0 && !demoMode) await save('pk_pl3',PLAYERS);
 
   ev.sessions.push({id:uid(),date,results:parsedCSV});
-  await save('pk_ev3',EVENTS);
+  if(!demoMode) await save('pk_ev3',EVENTS);
   const wasAdminDetail=document.getElementById('section-admin-event-detail').classList.contains('active');
   const savedEvId=uploadingEventId;
   closeModal('modal-add-scores');
@@ -2279,7 +2037,7 @@ function confirmDeleteSession(evId,sessId){
 }
 async function deleteEvent(evId){
   EVENTS=EVENTS.filter(e=>e.id!==evId);
-  await save('pk_ev3',EVENTS);
+  if(!demoMode) await save('pk_ev3',EVENTS);
   closeModal('modal-confirm');
   renderAdminEvents(); renderPublicEvents(); populateLeaderboardFilter();
   toast('Event deleted');
@@ -2288,7 +2046,7 @@ async function deleteEvent(evId){
 async function deleteSession(evId,sessId){
   const ev=EVENTS.find(e=>e.id===evId);
   if(ev) ev.sessions=ev.sessions.filter(s=>s.id!==sessId);
-  await save('pk_ev3',EVENTS);
+  if(!demoMode) await save('pk_ev3',EVENTS);
   closeModal('modal-confirm');
   renderAdminEvents(); renderPublicEvents();
   toast('Session deleted');
@@ -2305,14 +2063,14 @@ async function addPlayer(){
   if(!name) return;
   if(PLAYERS.find(p=>p.name.toLowerCase()===name.toLowerCase())){toast('Already exists');return;}
   PLAYERS.push({id:uid(),name});
-  await save('pk_pl3',PLAYERS);
+  if(!demoMode) await save('pk_pl3',PLAYERS);
   document.getElementById('new-player-name').value='';
   renderRoster(); renderPlayersGrid();
   toast(name+' added ✓');
 }
 async function removePlayer(id){
   PLAYERS=PLAYERS.filter(p=>p.id!==id);
-  await save('pk_pl3',PLAYERS);
+  if(!demoMode) await save('pk_pl3',PLAYERS);
   renderRoster(); renderPlayersGrid();
 }
 function renderRoster(){
@@ -2329,7 +2087,7 @@ function renderRoster(){
         style="accent-color:var(--gold);width:14px;height:14px;flex-shrink:0;cursor:pointer">
       <div style="font-size:14px;font-weight:600;color:var(--text);flex:1">${p.name}</div>
       <div class="session-actions">
-        ${overflowBtn(`openOverflow(this,[{label:'Delete',icon:OV_DELETE,danger:true,fn:()=>removePlayer('${p.id}')}])`)}
+        <button class="btn-red" onclick="removePlayer('${p.id}')">Delete</button>
       </div>
     </div>`).join('');
 
@@ -2360,7 +2118,7 @@ async function bulkDeletePlayers(){
   if(!ids.length) return;
   if(!confirm(`Remove ${ids.length} player${ids.length!==1?'s':''}?`)) return;
   PLAYERS=PLAYERS.filter(p=>!ids.includes(p.id));
-  await save('pk_pl3',PLAYERS);
+  if(!demoMode) await save('pk_pl3',PLAYERS);
   renderRoster(); renderPlayersGrid();
   toast(`${ids.length} player${ids.length!==1?'s':''} removed`);
 }
@@ -2384,7 +2142,7 @@ function importSVGPlayers(e){
         PLAYERS.push({id:uid(),name}); added++;
       }
     }
-    await save('pk_pl3',PLAYERS);
+    if(!demoMode) await save('pk_pl3',PLAYERS);
     renderRoster(); renderPlayersGrid();
     document.getElementById('svg-import-input').value='';
     toast(`${added} player${added!==1?'s':''} imported from SVG ✓`);
@@ -2413,52 +2171,6 @@ function medal(p){ return p===1?'🥇':p===2?'🥈':p===3?'🥉':'#'+p; }
 function emptyHtml(msg){ return`<div class="empty"><div class="empty-icon">♦</div><p>${msg||'No data yet'}</p></div>`; }
 
 let toastTimer;
-// ══════════════════════════════════════════
-// OVERFLOW MENU
-// ══════════════════════════════════════════
-let _ovMenu = null;
-function openOverflow(btnEl, items){
-  closeOverflow();
-  const menu = document.createElement('div');
-  menu.className = 'overflow-menu';
-  _ovMenu = menu;
-  items.forEach(item=>{
-    const btn = document.createElement('button');
-    btn.className = 'overflow-item' + (item.danger ? ' danger' : '');
-    btn.innerHTML = (item.icon||'') + `<span>${item.label}</span>`;
-    btn.onclick = ()=>{ closeOverflow(); item.fn(); };
-    menu.appendChild(btn);
-  });
-  document.body.appendChild(menu);
-  // Position below button, right-aligned
-  const r = btnEl.getBoundingClientRect();
-  const mw = 160;
-  let left = r.right - mw;
-  if(left < 8) left = 8;
-  let top = r.bottom + 4;
-  if(top + 160 > window.innerHeight) top = r.top - 160;
-  menu.style.left = left + 'px';
-  menu.style.top = top + 'px';
-  menu.style.minWidth = mw + 'px';
-  // Close on outside click
-  setTimeout(()=>{
-    document.addEventListener('mousedown', _ovOutside);
-  }, 0);
-}
-function _ovOutside(e){
-  if(_ovMenu && !_ovMenu.contains(e.target)) closeOverflow();
-}
-function closeOverflow(){
-  if(_ovMenu){ _ovMenu.remove(); _ovMenu=null; }
-  document.removeEventListener('mousedown', _ovOutside);
-}
-function ovIcon(path){ return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`; }
-const OV_EDIT = ovIcon('<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>');
-const OV_DELETE = ovIcon('<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>');
-const OV_RESULTS = ovIcon('<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>');
-
-function overflowBtn(onclick){ return `<button class="overflow-btn" onclick="${onclick}" title="More options"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>`; }
-
 function toast(msg, undoFn){
   // Create or reuse toast element
   let el = document.getElementById('toast');
@@ -2534,464 +2246,6 @@ const DEFAULT_PAYOUTS = [
 
 let PAYOUTS = null;
 let activeBuyinIdx = 0;
-
-// ══════════════════════════════════════════
-// LIVE SESSION
-// ══════════════════════════════════════════
-let liveSession = null; // { evId, date, rows: [{id, name, knocked, rank}] }
-
-function resumeLiveSession(evId){
-  // Go back to the live admin view without resetting
-  const ev = EVENTS.find(e=>e.id===evId);
-  if(!ev || !liveSession) return;
-  renderLiveAdmin();
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('section-live-session').classList.add('active');
-  setBreadcrumb([
-    {label:'Admin', fn:"showSection('admin')"},
-    {label:ev.name, fn:`showAdminEventDetail('${evId}')`},
-    {label:'Live Session'}
-  ]);
-}
-
-function openLiveSession(evId){
-  // Resume existing session for this event if one exists
-  if(liveSession && liveSession.evId === evId){
-    resumeLiveSession(evId);
-    return;
-  }
-  const ev = EVENTS.find(e=>e.id===evId);
-  if(!ev) return;
-  liveSession = {
-    evId,
-    date: new Date().toISOString().slice(0,10),
-    rows: []
-  };
-  renderLiveAdmin();
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('section-live-session').classList.add('active');
-  setBreadcrumb([
-    {label:'Admin', fn:"showSection('admin')"},
-    {label:ev.name, fn:`showAdminEventDetail('${evId}')`},
-    {label:'Live Session'}
-  ]);
-  updateLiveBanner();
-}
-
-function liveRecalcRanks(){
-  // Golf rules: all players start at total count, each knockout gets the current count
-  const total = liveSession.rows.length;
-  const active = liveSession.rows.filter(r=>!r.knocked);
-  // Active players all share the current "best remaining" rank = total - knocked count
-  // Knocked players keep their assigned rank but we recalc active display rank
-  liveSession._activeRank = active.length; // display rank for all active = number still in
-}
-
-function liveGetAutoRank(){
-  // When someone gets knocked out, they place at current total players count
-  return liveSession.rows.length - liveSession.rows.filter(r=>r.knocked).length;
-}
-
-function renderLiveAdmin(){
-  if(!liveSession) return;
-  liveRecalcRanks();
-  const ev = EVENTS.find(e=>e.id===liveSession.evId);
-  const el = document.getElementById('live-session-content');
-  const total = liveSession.rows.length;
-  const active = liveSession.rows.filter(r=>!r.knocked);
-  // Active players at top, knocked at bottom sorted worst→best (highest rank# = knocked first = bottom)
-  const knocked = liveSession.rows.filter(r=>r.knocked).sort((a,b)=>parseInt(b.rank||0)-parseInt(a.rank||0));
-  const allRows = [...active, ...knocked];
-
-  const rowHtml = allRows.map((row,i)=>{
-    const isKnocked = row.knocked;
-    const rankVal = isKnocked ? (row.rank||'') : active.length;
-    return `<div class="live-row" id="live-row-${row.id}" style="${isKnocked?'background:rgba(229,72,77,.04)':''}">
-      <div style="width:60px;flex-shrink:0;padding:12px 0 12px 12px;text-align:center">
-        <input type="text" class="live-rank-input" value="${rankVal}" placeholder="—"
-          onchange="liveSetRank('${row.id}',this.value)"
-          style="${isKnocked?'border-color:rgba(229,72,77,.3);color:var(--red)':''}">
-      </div>
-      <div style="padding:12px;position:relative;min-width:0;flex:1">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0">
-          ${isKnocked ? `<span style="color:var(--red);font-size:11px;font-weight:700;flex-shrink:0;letter-spacing:.3px">OUT</span>` : ''}
-          <input class="live-name-input" value="${row.name||''}" placeholder="Player name…"
-            oninput="liveNameInput('${row.id}',this.value,this)"
-            onkeydown="liveNameKeydown('${row.id}',event)"
-            autocomplete="off"
-            style="width:100%;${isKnocked?'color:var(--text-3);text-decoration:line-through':''}">
-        </div>
-        <div id="live-suggest-${row.id}" style="display:none;position:absolute;left:0;right:0;top:100%;background:var(--elevated);border:1px solid var(--border-hi);border-radius:var(--r-sm);z-index:50;box-shadow:0 4px 16px rgba(0,0,0,.4);max-height:180px;overflow-y:auto"></div>
-      </div>
-      <div style="padding:12px;flex-shrink:0">
-        ${isKnocked
-          ? `<button class="live-ko-btn restore" onclick="liveRestore('${row.id}')">↩ Restore</button>`
-          : `<button class="live-ko-btn" onclick="liveKnockout('${row.id}')">Knock Out</button>`
-        }
-      </div>
-    </div>`;
-  }).join('');
-
-  el.innerHTML = `
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
-      <div>
-        <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px">${ev?.location||''}</div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-          <span class="live-badge"><span class="pulse"></span>LIVE</span>
-          <span class="page-title" style="margin:0">${ev?.name||''}</span>
-        </div>
-        <div style="font-size:13px;color:var(--text-3)">${formatDate(liveSession.date)} · ${active.length} players remain</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button class="btn-gold" onclick="liveSubmit()">Submit Final Results</button>
-      </div>
-    </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
-      <div style="position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:2px solid var(--border)">
-        <div style="display:flex;align-items:center;padding:8px 12px 8px 0;border-bottom:1px solid var(--border)">
-          <div style="width:60px;flex-shrink:0;font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;text-align:center">Rank</div>
-          <div style="flex:1;min-width:0;font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;padding-left:12px">Player</div>
-          <div style="flex-shrink:0;font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;padding-right:4px">Action</div>
-        </div>
-        <div style="position:relative;padding:10px 12px;background:var(--elevated);border-bottom:1px solid var(--border)">
-          <div style="display:flex;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;transition:border-color .15s" onfocusin="this.style.borderColor='var(--gold)'" onfocusout="this.style.borderColor='var(--border)'">
-            <input id="live-add-input" type="text" placeholder="Enter player name and press Enter…" autocomplete="off"
-              oninput="liveAddNameInput(this.value,this)"
-              onkeydown="liveAddNameKeydown(event)"
-              style="flex:1;min-width:0;background:var(--surface);border:none;border-radius:0;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;outline:none">
-            <button onclick="liveAddFromInput()" style="flex-shrink:0;background:var(--surface);border:none;border-left:1px solid var(--border);color:var(--text-3);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;padding:8px 14px;cursor:pointer;white-space:nowrap;transition:color .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-3)'">+ Add</button>
-          </div>
-        </div>
-      </div>
-      ${rowHtml}
-    </div>`;
-  saveLiveSession();
-}
-
-function liveNameInput(rowId, val, inputEl){
-  const row = liveSession.rows.find(r=>r.id===rowId);
-  if(row) row.name = val;
-  const suggestEl = document.getElementById('live-suggest-'+rowId);
-  if(!val.trim()){ suggestEl.style.display='none'; return; }
-  const q = val.toLowerCase();
-  const matches = PLAYERS.filter(p=>p.name.toLowerCase().includes(q)).slice(0,6);
-  if(!matches.length){ suggestEl.style.display='none'; return; }
-  suggestEl.innerHTML = matches.map(p=>`<div onclick="liveSelectPlayer('${rowId}','${p.name.replace(/'/g,"\\'")}',this.closest('[id]'))"
-    style="padding:10px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background .1s"
-    onmouseover="this.style.background='var(--elevated)'" onmouseout="this.style.background='transparent'">${p.name}</div>`).join('');
-  suggestEl.style.display='block';
-}
-
-function liveNameKeydown(rowId, e){
-  if(e.key==='Enter'){
-    e.preventDefault();
-    document.getElementById('live-suggest-'+rowId).style.display='none';
-    liveAddRow();
-  }
-  if(e.key==='Escape') document.getElementById('live-suggest-'+rowId).style.display='none';
-}
-
-function liveSelectPlayer(rowId, name){
-  const row = liveSession.rows.find(r=>r.id===rowId);
-  if(row) row.name = name;
-  const input = document.querySelector(`#live-row-${rowId} .live-name-input`);
-  if(input) input.value = name;
-  document.getElementById('live-suggest-'+rowId).style.display='none';
-}
-
-function liveAddFromInput(){
-  const input = document.getElementById('live-add-input');
-  if(!input) return;
-  const name = input.value.trim();
-  if(!name) return;
-  // Prevent duplicate — case-insensitive
-  const alreadyAdded = liveSession.rows.some(r=>r.name.trim().toLowerCase()===name.toLowerCase());
-  if(alreadyAdded){
-    toast(name + ' is already in the session');
-    input.select();
-    return;
-  }
-  liveSession.rows.push({id:uid(), name, knocked:false, rank:''});
-  input.value = '';
-  getLiveAddSuggest().style.display='none';
-  renderLiveAdmin();
-  // Re-focus the input after re-render
-  setTimeout(()=>{ const el=document.getElementById('live-add-input'); if(el) el.focus(); },50);
-}
-
-function getLiveAddSuggest(){
-  let el = document.getElementById('live-add-suggest');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'live-add-suggest';
-    el.style.cssText = 'display:none;position:fixed;background:var(--elevated);border:1px solid var(--border-hi);border-radius:var(--r-sm);z-index:9000;box-shadow:0 4px 16px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;min-width:200px';
-    document.body.appendChild(el);
-    // Close on outside click
-    document.addEventListener('mousedown', e=>{
-      const input = document.getElementById('live-add-input');
-      if(el && !el.contains(e.target) && e.target !== input) el.style.display='none';
-    });
-  }
-  return el;
-}
-
-function positionLiveAddSuggest(){
-  const input = document.getElementById('live-add-input');
-  const el = getLiveAddSuggest();
-  if(!input || !el) return;
-  const r = input.getBoundingClientRect();
-  el.style.top = (r.bottom + 4) + 'px';
-  el.style.left = r.left + 'px';
-  el.style.width = r.width + 'px';
-}
-
-function liveAddNameInput(val, inputEl){
-  const suggestEl = getLiveAddSuggest();
-  if(!val.trim()){ suggestEl.style.display='none'; return; }
-  const q = val.toLowerCase();
-  const matches = PLAYERS.filter(p=>p.name.toLowerCase().includes(q)).slice(0,8);
-  if(!matches.length){ suggestEl.style.display='none'; return; }
-  suggestEl.innerHTML = matches.map(p=>{
-    const added = liveSession.rows.some(r=>r.name.trim().toLowerCase()===p.name.toLowerCase());
-    return `<div onclick="${added ? '' : `liveAddSelectPlayer('${p.name.replace(/'/g,"\\'")}')`}"
-      style="padding:10px 14px;cursor:${added?'default':'pointer'};font-size:13px;color:${added?'var(--text-3)':'var(--text)'};display:flex;align-items:center;justify-content:space-between;gap:12px;transition:background .1s"
-      ${added ? '' : `onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='transparent'"`}>
-      <span>${p.name}</span>
-      ${added ? `<span style="font-size:10px;font-weight:600;color:var(--green);background:var(--green-bg);border:1px solid var(--green-bdr);padding:2px 7px;border-radius:20px;flex-shrink:0">Added</span>` : ''}
-    </div>`;
-  }).join('');
-  positionLiveAddSuggest();
-  suggestEl.style.display='block';
-}
-
-function liveAddSelectPlayer(name){
-  const input = document.getElementById('live-add-input');
-  if(input) input.value = name;
-  getLiveAddSuggest().style.display='none';
-  liveAddFromInput();
-}
-
-function liveAddNameKeydown(e){
-  if(e.key==='Enter'){ e.preventDefault(); liveAddFromInput(); }
-  if(e.key==='Escape') getLiveAddSuggest().style.display='none';
-}
-
-function liveAddRow(){
-  liveSession.rows.push({id:uid(), name:'', knocked:false, rank:''});
-  renderLiveAdmin();
-  // Focus last name input
-  setTimeout(()=>{
-    const inputs = document.querySelectorAll('.live-name-input');
-    if(inputs.length) inputs[inputs.length-1].focus();
-  },50);
-}
-
-function liveKnockout(rowId){
-  const row = liveSession.rows.find(r=>r.id===rowId);
-  if(!row) return;
-  // Golf rules: this player places at current "active count" position
-  // e.g. 6 players total, 0 knocked yet → first knockout is rank 6
-  // e.g. 6 players, 1 knocked already → second knockout is rank 5
-  row.knocked = true;
-  const activeRemaining = liveSession.rows.filter(r=>!r.knocked).length;
-  row.rank = activeRemaining + 1; // +1 because they just got knocked (they were still active a moment ago)
-  renderLiveAdmin();
-  updateLiveBanner();
-}
-
-function liveRestore(rowId){
-  const row = liveSession.rows.find(r=>r.id===rowId);
-  if(!row) return;
-  row.knocked = false;
-  row.rank = '';
-  renderLiveAdmin();
-  updateLiveBanner();
-}
-
-function liveSetRank(rowId, val){
-  const row = liveSession.rows.find(r=>r.id===rowId);
-  if(row) row.rank = val;
-  saveLiveSession();
-}
-
-function saveLiveSession(){
-  fbSaveLive(liveSession || null);
-  // Refresh admin events list so live badge stays current
-  if(loggedIn) renderAdminEvents();
-}
-
-function updateLiveBanner(){
-  const banner = document.getElementById('live-banner');
-  if(!liveSession){ banner.style.display='none'; return; }
-  const ev = EVENTS.find(e=>e.id===liveSession.evId);
-  document.getElementById('live-banner-name').textContent = ev?.name||'Live Session';
-  banner.style.display='flex';
-  // Show admin or public controls based on login state
-  const adminEl = document.getElementById('live-banner-admin');
-  const publicEl = document.getElementById('live-banner-public');
-  if(loggedIn){
-    adminEl.style.display='flex';
-    publicEl.style.display='none';
-  } else {
-    adminEl.style.display='none';
-    publicEl.style.display='flex';
-  }
-  document.querySelector('main').style.paddingBottom = '72px';
-}
-
-function liveCopyLink(){
-  const url = window.location.href.split('?')[0] + '?live=' + liveSession.evId;
-  navigator.clipboard.writeText(url).then(()=>{
-    toast('Link copied ✓ — share it so others can follow live');
-  }).catch(()=>{
-    // Fallback for environments without clipboard API
-    const ta = document.createElement('textarea');
-    ta.value = url;
-    ta.style.position='fixed';ta.style.opacity='0';
-    document.body.appendChild(ta);ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    toast('Link copied ✓ — share it so others can follow live');
-  });
-}
-
-function hideLiveBanner(){
-  document.getElementById('live-banner').style.display='none';
-  document.querySelector('main').style.paddingBottom='';
-}
-
-function followLiveSession(){
-  if(!liveSession) return;
-  const ev = EVENTS.find(e=>e.id===liveSession.evId);
-  showLivePublic();
-}
-
-let livePublicRealtimeActive = false;
-
-function renderLivePublicView(sessionData){
-  if(!sessionData) return;
-  // Update local liveSession so banner stays current
-  liveSession = sessionData;
-  const ev = EVENTS.find(e=>e.id===sessionData.evId);
-  const active = sessionData.rows.filter(r=>!r.knocked && r.name.trim());
-  const knocked = sessionData.rows.filter(r=>r.knocked && r.name.trim()).sort((a,b)=>parseInt(b.rank||0)-parseInt(a.rank||0));
-  const allRows = [...active, ...knocked];
-  const totalNamed = sessionData.rows.filter(r=>r.name.trim()).length;
-  const remain = active.length;
-
-  const el = document.getElementById('live-session-content');
-  el.innerHTML = `
-    <div style="margin-bottom:24px">
-      <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px">${ev?.name||''}</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:6px">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <span class="live-badge"><span class="pulse"></span>LIVE</span>
-          <span class="page-title" style="margin:0">${formatDate(sessionData.date)}</span>
-        </div>
-        ${!livePublicRealtimeActive ? `
-        <button onclick="liveManualRefresh()" class="btn-sm" style="display:flex;align-items:center;gap:6px">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          Refresh
-        </button>` : `<span style="font-size:11px;color:var(--green);display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;background:var(--green);border-radius:50%;animation:livePulse 2s ease-in-out infinite"></span>Auto-updating</span>`}
-      </div>
-      <div style="font-size:13px;color:var(--text-3)">${totalNamed} players <span style="color:var(--text-2)">(${remain} remain)</span></div>
-    </div>
-    <table class="leaderboard">
-      <thead><tr><th>Rank</th><th>Player</th><th>Status</th></tr></thead>
-      <tbody>${allRows.map(row=>{
-        const isKnocked = row.knocked;
-        const rankLabel = isKnocked ? (row.rank ? '#'+row.rank : '—') : '<span style="color:var(--green)">●</span>';
-        const status = isKnocked
-          ? `<span style="font-size:12px;color:var(--red);font-weight:500">Out</span>`
-          : `<span style="font-size:12px;color:var(--green);font-weight:500">Still in</span>`;
-        return `<tr style="${isKnocked?'opacity:.55':''}">
-          <td class="rank">${rankLabel}</td>
-          <td class="player-name">${row.name}</td>
-          <td>${status}</td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table>`;
-}
-
-async function liveManualRefresh(){
-  const btn = document.querySelector('[onclick="liveManualRefresh()"]');
-  if(btn){ btn.style.opacity='.5'; btn.style.pointerEvents='none'; }
-  const data = await fbLoadLive();
-  if(data) renderLivePublicView(data);
-  if(btn){ btn.style.opacity=''; btn.style.pointerEvents=''; }
-  toast('Updated ✓');
-}
-
-function showLivePublic(){
-  if(!liveSession) return;
-  const ev = EVENTS.find(e=>e.id===liveSession.evId);
-
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('section-live-session').classList.add('active');
-  setBreadcrumb([
-    {label:'Events', fn:"showSection('events')"},
-    {label:ev?.name||'', fn:`showEventDetail('${liveSession.evId}')`},
-    {label:'Live — '+formatDate(liveSession.date)}
-  ]);
-
-  // Try to subscribe for real-time updates
-  livePublicRealtimeActive = fbSubscribeLive(data=>{
-    if(data) renderLivePublicView(data);
-    else {
-      // Session ended
-      liveSession = null;
-      hideLiveBanner();
-      fbUnsubscribeLive();
-      toast('Live session has ended');
-      showSection('events');
-    }
-  });
-
-  // Render immediately with current data
-  renderLivePublicView(liveSession);
-}
-
-function liveSubmit(){
-  if(!liveSession) return;
-  const ev = EVENTS.find(e=>e.id===liveSession.evId);
-  if(!ev) return;
-  // Build results — active players get ranked by order remaining (1st = last one standing)
-  const active = liveSession.rows.filter(r=>!r.knocked && r.name.trim());
-  const knocked = liveSession.rows.filter(r=>r.knocked && r.name.trim());
-  const totalPlayers = active.length + knocked.length;
-  const results = [];
-  // Active players finish in 1st through active.length order
-  active.forEach((row,i)=>{
-    results.push({player:row.name.trim(), position:i+1, points: SCORING[i+1]||0});
-  });
-  // Knocked out get their rank (they were knocked in reverse order)
-  knocked.sort((a,b)=>parseInt(a.rank||999)-parseInt(b.rank||999));
-  knocked.forEach(row=>{
-    const pos = parseInt(row.rank)||results.length+1;
-    results.push({player:row.name.trim(), position:pos, points:SCORING[pos]||0});
-  });
-  // Save as a new session
-  const sessId = uid();
-  const sess = {id:sessId, date:liveSession.date, results};
-  ev.sessions.push(sess);
-  save('pk_ev3', EVENTS);
-  // Auto-create new players
-  let newCount=0;
-  results.forEach(r=>{
-    if(r.player && !PLAYERS.find(p=>p.name.toLowerCase()===r.player.toLowerCase())){
-      PLAYERS.push({id:uid(),name:r.player,avatar:null});newCount++;
-    }
-  });
-  if(newCount) save('pk_pl3',PLAYERS);
-  liveSession = null;
-  hideLiveBanner();
-  fbSaveLive(null);
-  fbUnsubscribeLive();
-  toast(`Live session saved ✓${newCount?` · ${newCount} new player${newCount>1?'s':''} added`:''}`);
-  showAdminEventDetail(ev.id);
-}
-
-
 
 async function loadPayouts(){
   PAYOUTS = await load('pk_payouts');
@@ -3242,7 +2496,8 @@ function renderSpecialEventsAdmin(){
           </div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0">
-          ${overflowBtn(`openOverflow(this,[{label:'Edit',icon:OV_EDIT,fn:()=>editSpecialEvent('${ev.id}')},{label:'Delete',icon:OV_DELETE,danger:true,fn:()=>deleteSpecialEvent('${ev.id}')}])`)}
+          <button class="btn-sm" onclick="editSpecialEvent('${ev.id}')">Edit</button>
+          <button class="btn-red" onclick="deleteSpecialEvent('${ev.id}')">Delete</button>
         </div>
       </div>
       ${descHtml}
@@ -3618,7 +2873,7 @@ async function saveSpecialEvent(){
   };
   if(editingSpecialId){ const idx=SPECIAL_EVENTS.findIndex(e=>e.id===editingSpecialId); if(idx!==-1) SPECIAL_EVENTS[idx]=ev; }
   else { SPECIAL_EVENTS.push(ev); }
-  await save('pk_special',SPECIAL_EVENTS);
+  if(!demoMode) await save('pk_special',SPECIAL_EVENTS);
   closeModal('modal-special-event');
   resetSpecialForm();
   renderSpecialEventsPublic();
@@ -3629,7 +2884,7 @@ async function saveSpecialEvent(){
 async function deleteSpecialEvent(id){
   SPECIAL_EVENTS=SPECIAL_EVENTS.filter(e=>e.id!==id);
   activeSpecialIdx=0;
-  await save('pk_special',SPECIAL_EVENTS);
+  if(!demoMode) await save('pk_special',SPECIAL_EVENTS);
   renderSpecialEventsPublic();
   renderSpecialEventsAdmin();
   toast('Special event deleted');
