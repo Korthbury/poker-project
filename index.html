@@ -1076,8 +1076,8 @@ let lbSortAsc = false;         // false = descending
 //    create policy "Public read" on poker_data for select using (true);
 //    create policy "Public write" on poker_data for all using (true);
 // ══════════════════════════════════════════
-const SUPABASE_URL = 'https://nkxfayucjvwqvxmjhhjq.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_3pBEjAJHrr10Kzjd86ksvQ_NAZjufpo';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';       // e.g. https://abcxyz.supabase.co
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';  // long string starting with eyJ...
 
 const SB_CONFIGURED = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
 
@@ -1089,8 +1089,7 @@ async function sbFetch(method, key, val){
       'apikey': SUPABASE_KEY,
       'Authorization': 'Bearer ' + SUPABASE_KEY,
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Prefer': method === 'GET' ? '' : 'resolution=merge-duplicates,return=minimal'
+      'Prefer': 'resolution=merge-duplicates,return=minimal'
     };
     if(method === 'GET'){
       const res = await fetch(url + '?key=eq.' + encodeURIComponent(key) + '&select=value', {headers});
