@@ -1094,22 +1094,16 @@ async function sbFetch(method, key, val){
     };
     if(method === 'GET'){
       const res = await fetch(url + '?key=eq.' + encodeURIComponent(key) + '&select=value', {headers});
-      const text = await res.text();
-      console.log('Supabase GET', key, '→ status:', res.status, 'body:', text.slice(0,200));
-      if(!res.ok){ console.warn('Supabase GET error:', res.status, text); return null; }
-      const rows = JSON.parse(text);
-      if(!rows.length){ console.log('Supabase: no rows found for', key); return null; }
-      console.log('Supabase: found row for', key, '→ value type:', typeof rows[0].value);
-      return rows[0].value;
+      if(!res.ok){ console.warn('Supabase GET error:', res.status, await res.text()); return null; }
+      const rows = await res.json();
+      return rows.length ? rows[0].value : null;
     } else {
       const res = await fetch(url, {
         method: 'POST',
         headers,
         body: JSON.stringify({key, value: val, updated_at: new Date().toISOString()})
       });
-      const text = await res.text();
-      console.log('Supabase POST', key, '→ status:', res.status, text.slice(0,100));
-      if(!res.ok) console.warn('Supabase POST error:', res.status, text);
+      if(!res.ok) console.warn('Supabase POST error:', res.status, await res.text());
     }
   }catch(e){ console.warn('Supabase error:', e.message); return null; }
 }
