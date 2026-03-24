@@ -1076,8 +1076,8 @@ let lbSortAsc = false;         // false = descending
 //    create policy "Public read" on poker_data for select using (true);
 //    create policy "Public write" on poker_data for all using (true);
 // ══════════════════════════════════════════
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';       // e.g. https://abcxyz.supabase.co
-const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';  // long string starting with eyJ...
+const SUPABASE_URL = 'https://nkxfayucjvwqvxmjhhjq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_3pBEjAJHrr10Kzjd86ksvQ_NAZjufpo';
 
 const SB_CONFIGURED = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
 
@@ -1089,20 +1089,27 @@ async function sbFetch(method, key, val){
       'apikey': SUPABASE_KEY,
       'Authorization': 'Bearer ' + SUPABASE_KEY,
       'Content-Type': 'application/json',
-      'Prefer': 'resolution=merge-duplicates,return=minimal'
+      'Accept': 'application/json',
+      'Prefer': method === 'GET' ? '' : 'resolution=merge-duplicates,return=minimal'
     };
     if(method === 'GET'){
       const res = await fetch(url + '?key=eq.' + encodeURIComponent(key) + '&select=value', {headers});
-      if(!res.ok){ console.warn('Supabase GET error:', res.status, await res.text()); return null; }
-      const rows = await res.json();
-      return rows.length ? rows[0].value : null;
+      const text = await res.text();
+      console.log('Supabase GET', key, '→ status:', res.status, 'body:', text.slice(0,200));
+      if(!res.ok){ console.warn('Supabase GET error:', res.status, text); return null; }
+      const rows = JSON.parse(text);
+      if(!rows.length){ console.log('Supabase: no rows found for', key); return null; }
+      console.log('Supabase: found row for', key, '→ value type:', typeof rows[0].value);
+      return rows[0].value;
     } else {
       const res = await fetch(url, {
         method: 'POST',
         headers,
         body: JSON.stringify({key, value: val, updated_at: new Date().toISOString()})
       });
-      if(!res.ok) console.warn('Supabase POST error:', res.status, await res.text());
+      const text = await res.text();
+      console.log('Supabase POST', key, '→ status:', res.status, text.slice(0,100));
+      if(!res.ok) console.warn('Supabase POST error:', res.status, text);
     }
   }catch(e){ console.warn('Supabase error:', e.message); return null; }
 }
